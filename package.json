@@ -1,0 +1,21 @@
+{
+  "name": "finops-margin-sentinel-monorepo",
+  "version": "1.0.0",
+  "description": "FinOps Margin Sentinel monorepo for the Pirates of the Coral-bean hackathon",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:all": "npm run build --workspaces",
+    "seed": "npm run seed --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

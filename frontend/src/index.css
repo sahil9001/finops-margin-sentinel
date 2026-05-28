@@ -1,0 +1,449 @@
+/* ============================================================
+   MARGIN SENTINEL — "The Margin Desk"
+   A dark-luxury financial control room.
+   Warm ink · bone type · gold sentinel accent · P&L semantics.
+   ============================================================ */
+
+/* ---------- Design Tokens ---------- */
+:root {
+  /* Warm ink surfaces (not cold navy) */
+  --ink-900: oklch(15% 0.012 70);
+  --ink-850: oklch(17.5% 0.013 68);
+  --ink-800: oklch(21% 0.014 66);
+  --ink-750: oklch(25% 0.015 64);
+
+  --line: oklch(100% 0 0 / 0.07);
+  --line-strong: oklch(100% 0 0 / 0.15);
+
+  /* Bone / cream text */
+  --bone: oklch(95% 0.012 82);
+  --bone-dim: oklch(80% 0.014 80);
+  --bone-faint: oklch(63% 0.012 76);
+
+  /* Signal colors */
+  --gold: oklch(81% 0.125 80);
+  --gold-bright: oklch(88% 0.14 86);
+  --gold-glow: oklch(81% 0.125 80 / 0.16);
+  --gold-soft: oklch(81% 0.125 80 / 0.08);
+
+  --profit: oklch(83% 0.15 158);
+  --profit-glow: oklch(83% 0.15 158 / 0.14);
+  --profit-soft: oklch(83% 0.15 158 / 0.07);
+
+  --loss: oklch(66% 0.2 26);
+  --loss-glow: oklch(66% 0.2 26 / 0.16);
+  --loss-soft: oklch(66% 0.2 26 / 0.08);
+
+  --warn: var(--gold);
+  --warn-soft: var(--gold-soft);
+
+  /* Type */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  --text-hero: clamp(2.8rem, 1.4rem + 5.4vw, 5.5rem);
+  --text-section: clamp(1.9rem, 1.3rem + 2.4vw, 3rem);
+
+  /* Geometry & motion */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 0.45s;
+  --shadow-card: 0 1px 0 oklch(100% 0 0 / 0.04) inset, 0 24px 60px -28px oklch(0% 0 0 / 0.85);
+}
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--ink-900);
+  color: var(--bone);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Atmosphere: warm radial glows + a faint ledger grid, fixed behind content */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% -20%, var(--gold-glow), transparent 55%),
+    radial-gradient(90% 70% at 110% 115%, var(--loss-glow), transparent 50%),
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px;
+  background-position: 0 0, 0 0, -1px -1px, -1px -1px;
+  opacity: 0.5;
+}
+
+/* Grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Typography ---------- */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-optical-sizing: auto;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.display em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--gold);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.muted {
+  color: var(--bone-dim);
+}
+.faint {
+  color: var(--bone-faint);
+}
+
+/* ---------- Surfaces ---------- */
+.surface {
+  position: relative;
+  background:
+    linear-gradient(180deg, oklch(100% 0 0 / 0.025), transparent 40%),
+    var(--ink-850);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.surface--inset {
+  background: oklch(11% 0.01 68);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.surface-hover {
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.surface-hover:hover {
+  transform: translateY(-3px);
+  border-color: var(--line-strong);
+  box-shadow: 0 1px 0 oklch(100% 0 0 / 0.05) inset, 0 32px 70px -30px oklch(0% 0 0 / 0.9);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.18s var(--ease), background 0.2s var(--ease),
+    border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), color 0.2s var(--ease);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn--primary {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: oklch(22% 0.05 70);
+  box-shadow: 0 8px 22px -10px var(--gold-glow);
+}
+.btn--primary:hover:not(:disabled) {
+  box-shadow: 0 12px 30px -8px var(--gold-glow), 0 0 0 1px var(--gold-bright);
+  transform: translateY(-1px);
+}
+
+.btn--ghost {
+  background: oklch(100% 0 0 / 0.03);
+  color: var(--bone);
+  border-color: var(--line-strong);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: oklch(100% 0 0 / 0.07);
+  border-color: var(--bone-faint);
+  transform: translateY(-1px);
+}
+
+.btn--danger {
+  background: linear-gradient(180deg, oklch(70% 0.2 26), var(--loss));
+  color: oklch(20% 0.04 26);
+  box-shadow: 0 8px 22px -10px var(--loss-glow);
+}
+.btn--danger:hover:not(:disabled) {
+  box-shadow: 0 12px 30px -8px var(--loss-glow);
+  transform: translateY(-1px);
+}
+
+.btn--sm {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.8rem;
+}
+.btn--icon {
+  padding: 0.55rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Pills & dots ---------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.22rem 0.6rem 0.22rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-strong);
+}
+.pill--profit {
+  color: var(--profit);
+  background: var(--profit-soft);
+  border-color: var(--profit-glow);
+}
+.pill--loss {
+  color: var(--loss);
+  background: var(--loss-soft);
+  border-color: var(--loss-glow);
+}
+.pill--warn {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--gold-glow);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot--profit {
+  background: var(--profit);
+  box-shadow: 0 0 8px var(--profit);
+}
+.dot--loss {
+  background: var(--loss);
+  box-shadow: 0 0 8px var(--loss);
+}
+.dot--warn {
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+}
+
+/* ---------- Forms ---------- */
+.field-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  color: var(--bone-dim);
+}
+.input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: oklch(10% 0.01 68);
+  border: 1px solid var(--line-strong);
+  color: var(--bone);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.input::placeholder {
+  color: var(--bone-faint);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+/* ---------- Terminal block ---------- */
+.terminal {
+  background: oklch(9% 0.008 68);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  overflow: hidden;
+}
+.terminal__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.95rem;
+  border-bottom: 1px solid var(--line);
+  background: oklch(13% 0.01 68);
+}
+.terminal__bar span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.terminal__body {
+  padding: 1.1rem 1.25rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--bone-dim);
+  overflow-x: auto;
+}
+.tok-key {
+  color: var(--gold);
+}
+.tok-num {
+  color: var(--profit);
+}
+.tok-cmt {
+  color: var(--bone-faint);
+  font-style: italic;
+}
+.tok-neg {
+  color: var(--loss);
+}
+
+/* ---------- Layout helpers ---------- */
+.shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 0.5rem + 2vw, 2.5rem);
+}
+
+.scroll-area {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bone-faint);
+  background-clip: padding-box;
+}
+
+/* ---------- Animation ---------- */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--loss-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+.reveal {
+  opacity: 0;
+  animation: reveal-up 0.7s var(--ease) forwards;
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+.pulse-loss {
+  animation: pulse-ring 2.2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal {
+    opacity: 1;
+  }
+}

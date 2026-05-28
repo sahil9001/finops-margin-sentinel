@@ -1,0 +1,209 @@
+/* ---------- App shell: top bar, mode toggle, settings modal ---------- */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem clamp(1.25rem, 0.5rem + 2vw, 2.5rem);
+  background: oklch(15% 0.012 70 / 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.topbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--gold-glow) 30%, var(--gold-glow) 70%, transparent);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(150deg, var(--gold-bright), var(--gold));
+  box-shadow: 0 6px 18px -6px var(--gold-glow), 0 0 0 1px oklch(100% 0 0 / 0.1) inset;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.brand:hover .brand__mark {
+  transform: rotate(-6deg) scale(1.04);
+  box-shadow: 0 10px 26px -6px var(--gold-glow);
+}
+.brand__name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.brand__name em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--gold);
+}
+.brand__tag {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+  margin-top: 0.25rem;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+/* Segmented mode control */
+.seg {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 999px;
+  background: oklch(10% 0.01 68);
+  border: 1px solid var(--line-strong);
+}
+.seg__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.85rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+  transition: color 0.25s var(--ease), background 0.25s var(--ease);
+}
+.seg__btn:hover {
+  color: var(--bone-dim);
+}
+.seg__btn[data-active='true'] {
+  color: oklch(20% 0.04 70);
+  background: var(--gold);
+  box-shadow: 0 4px 12px -4px var(--gold-glow);
+}
+.seg__btn--live[data-active='true'] {
+  color: oklch(20% 0.04 158);
+  background: var(--profit);
+  box-shadow: 0 4px 12px -4px var(--profit-glow);
+}
+
+/* Settings modal */
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: oklch(8% 0.01 68 / 0.7);
+  backdrop-filter: blur(8px);
+  animation: reveal-up 0.3s var(--ease);
+}
+.modal {
+  width: 100%;
+  max-width: 540px;
+  padding: 2rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal__close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: oklch(100% 0 0 / 0.03);
+  border: 1px solid var(--line);
+  color: var(--bone-dim);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.modal__close:hover {
+  color: var(--bone);
+  border-color: var(--bone-faint);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-sm);
+  background: oklch(100% 0 0 / 0.02);
+  border: 1px solid var(--line);
+}
+.toggle-row button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  transition: color 0.2s var(--ease);
+}
+
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.callout--warn {
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-glow);
+  color: var(--gold);
+}
+.callout--profit {
+  background: var(--profit-soft);
+  border: 1px solid var(--profit-glow);
+  color: var(--profit);
+}
+.callout--loss {
+  background: var(--loss-soft);
+  border: 1px solid var(--loss-glow);
+  color: var(--loss);
+}
+.callout svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
