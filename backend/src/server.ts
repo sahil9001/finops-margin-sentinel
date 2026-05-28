@@ -76,8 +76,22 @@ app.get('/api/margins', async (req, res) => {
       JOIN posthog.events_summary p ON p.distinct_id = s.metadata_user_id
     `;
     
-    const rows = await coralService.query(sql);
-    res.json({ success: true, data: rows });
+    const rows = await coralService.query<any>(sql);
+    const processed = rows.map((row: any) => {
+      const monthly_revenue = Number(row.monthly_revenue) || 0;
+      let plan = 'Custom Tier';
+      if (monthly_revenue === 3000) plan = 'Enterprise Tier';
+      else if (monthly_revenue === 2500) plan = 'Scale Tier';
+      else if (monthly_revenue === 1200) plan = 'Growth Tier';
+      else if (monthly_revenue === 800) plan = 'Startup Tier';
+      else if (monthly_revenue === 450) plan = 'Developer Tier';
+
+      return {
+        ...row,
+        plan
+      };
+    });
+    res.json({ success: true, data: processed });
   } catch (error: any) {
     console.error('[Server] Query error:', error.message);
     res.status(500).json({ success: false, error: error.message });

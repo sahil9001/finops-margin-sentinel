@@ -155,6 +155,13 @@ app.get('/api/margins', async (req, res) => {
         status = 'warning';
       }
 
+      let plan = 'Custom Tier';
+      if (monthly_revenue === 3000) plan = 'Enterprise Tier';
+      else if (monthly_revenue === 2500) plan = 'Scale Tier';
+      else if (monthly_revenue === 1200) plan = 'Growth Tier';
+      else if (monthly_revenue === 800) plan = 'Startup Tier';
+      else if (monthly_revenue === 450) plan = 'Developer Tier';
+
       return {
         email,
         customer_name: row.customer_name,
@@ -162,7 +169,8 @@ app.get('/api/margins', async (req, res) => {
         total_token_cost: Number(total_token_cost.toFixed(2)),
         ai_features_clicked,
         net_margin,
-        status
+        status,
+        plan
       };
     });
 

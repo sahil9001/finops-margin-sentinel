@@ -117,20 +117,38 @@ export class AgentService {
   async auditClient(row, isSandbox = true) {
     if (isSandbox) {
       console.log(`[AgentService] Performing mock Claude audit for: ${row.email}`);
-      return MOCK_AUDITS[row.email] || {
+      if (MOCK_AUDITS[row.email]) {
+        return MOCK_AUDITS[row.email];
+      }
+
+      const isProfitable = row.net_margin >= 0;
+      return {
         clientEmail: row.email,
         clientName: row.customer_name,
         margin: row.net_margin,
-        reasoning: [
+        reasoning: isProfitable ? [
+          'Querying Coral engine: JOIN stripe.customers with langfuse.traces...',
+          `Detected subscription plan revenue: $${row.monthly_revenue}/mo.`,
+          `Detected LLM token consumption: $${row.total_token_cost}/mo.`,
+          `Calculated net margin: +$${row.net_margin}/mo (profitable account).`,
+          'Analyzing usage patterns: stable usage within plan limits.',
+          'Action determined: No immediate optimization or upgrade required.'
+        ] : [
           'Checking records...',
           `Subscription payment: $${row.monthly_revenue}/mo`,
           `Token expense: $${row.total_token_cost}/mo`,
           'Net loss detected. Drafting standard notice.'
         ],
-        suggestedAction: 'Contact customer for subscription review',
+        suggestedAction: isProfitable 
+          ? 'No action required — customer is profitable' 
+          : 'Contact customer for subscription review',
         emailDraft: {
-          subject: 'Usage Alert: Subscription limit reached',
-          body: `Hi ${row.customer_name},\n\nWe noticed your AI usage has exceeded your subscription plan metrics. Please visit your billing panel to check options.\n\nBest,\nFinOps Margin Sentinel`
+          subject: isProfitable 
+            ? 'Thank you for choosing FinOps Margin Sentinel' 
+            : 'Usage Alert: Subscription limit reached',
+          body: isProfitable 
+            ? `Hi ${row.customer_name},\n\nWe want to thank you for using our platform. We noticed your usage has been stable and highly efficient. Keep up the great work!\n\nBest,\nFinOps Margin Sentinel`
+            : `Hi ${row.customer_name},\n\nWe noticed your AI usage has exceeded your subscription plan metrics. Please visit your billing panel to check options.\n\nBest,\nFinOps Margin Sentinel`
         }
       };
     }

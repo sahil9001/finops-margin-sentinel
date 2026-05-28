@@ -6,6 +6,7 @@ export interface MarginRow {
   ai_features_clicked: number;
   net_margin: number;
   status: 'healthy' | 'warning' | 'leak';
+  plan?: string;
 }
 
 export interface AuditResult {

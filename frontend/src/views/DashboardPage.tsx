@@ -201,9 +201,16 @@ function DashboardPage({ settings }: DashboardPageProps) {
                   return (
                     <tr key={row.email} data-selected={selectedRow?.email === row.email}>
                       <td>
-                        <div className="cust__name">
-                          <span className={`dot ${STATUS_DOT[row.status]}`} />
-                          {row.customer_name}
+                        <div className="cust__name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', width: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span className={`dot ${STATUS_DOT[row.status]}`} />
+                            {row.customer_name}
+                          </div>
+                          {row.plan && (
+                            <span className="mono faint" style={{ fontSize: '0.62rem', border: '1px solid var(--line-strong)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              {row.plan}
+                            </span>
+                          )}
                         </div>
                         <div className="cust__email">{row.email}</div>
                         <div className="loadbar" title={`Cost is ${Math.round(load)}% of revenue`}>
