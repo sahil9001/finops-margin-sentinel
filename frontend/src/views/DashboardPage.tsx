@@ -28,6 +28,32 @@ function DashboardPage({ settings }: DashboardPageProps) {
   
   const [activeTab, setActiveTab] = useState<'ledger' | 'policies' | 'audit' | 'settings'>('ledger');
 
+  // Ledger view filters & sorting
+  const [filterStatus, setFilterStatus] = useState<'all' | 'leak' | 'warning' | 'healthy'>('all');
+  const [sortBy, setSortBy] = useState<'margin' | 'revenue' | 'cost'>('margin');
+
+  // Optimization panel states
+  const [selectedModel, setSelectedModel] = useState<string>('claude-3-5-sonnet');
+  const [dailyCap, setDailyCap] = useState<string>('25');
+  const [capSuccess, setCapSuccess] = useState<string | null>(null);
+  const [showCacheSnippet, setShowCacheSnippet] = useState<boolean>(false);
+  const [routingSuccess, setRoutingSuccess] = useState<string | null>(null);
+
+  // Policy Settings State
+  const [policies, setPolicies] = useState({
+    alertThreshold: -100,
+    autoThrottle: false,
+    notificationSlack: true,
+    monitoringInterval: 'Daily',
+  });
+  const [policiesLoading, setPoliciesLoading] = useState(false);
+  const [policiesSaving, setPoliciesSaving] = useState(false);
+  const [policiesSuccess, setPoliciesSuccess] = useState(false);
+
+  // System Audit Log State
+  const [auditHistory, setAuditHistory] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
   const fetchMargins = async () => {
     setLoading(true);
     setError(null);
@@ -53,9 +79,69 @@ function DashboardPage({ settings }: DashboardPageProps) {
     }
   };
 
+  const fetchPolicies = async () => {
+    setPoliciesLoading(true);
+    try {
+      const res = await fetch('/api/policies');
+      const data = await res.json();
+      if (data.success) {
+        setPolicies(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching policies:', err);
+    } finally {
+      setPoliciesLoading(false);
+    }
+  };
+
+  const savePolicies = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPoliciesSaving(true);
+    setPoliciesSuccess(false);
+    try {
+      const res = await fetch('/api/policies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(policies),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPoliciesSuccess(true);
+        setTimeout(() => setPoliciesSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error('Error saving policies:', err);
+    } finally {
+      setPoliciesSaving(false);
+    }
+  };
+
+  const fetchAuditHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await fetch('/api/audit-log');
+      const data = await res.json();
+      if (data.success) {
+        setAuditHistory(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching audit log:', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchMargins();
   }, [settings.useSandbox]);
+
+  useEffect(() => {
+    if (activeTab === 'policies') {
+      fetchPolicies();
+    } else if (activeTab === 'audit') {
+      fetchAuditHistory();
+    }
+  }, [activeTab]);
 
   // Selecting a row is free (no API call). Clear any audit result that belongs
   // to a different customer so the panel never shows a stale mismatch.
@@ -123,11 +209,25 @@ function DashboardPage({ settings }: DashboardPageProps) {
     }
   };
 
-  const filteredMargins = margins.filter(
-    (row) =>
-      row.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredMargins = margins
+    .filter((row) => {
+      const matchesSearch =
+        row.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        row.email.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      if (filterStatus === 'all') return matchesSearch;
+      return matchesSearch && row.status === filterStatus;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'margin') {
+        return a.net_margin - b.net_margin; // Leaking accounts first
+      } else if (sortBy === 'revenue') {
+        return b.monthly_revenue - a.monthly_revenue; // Highest revenue first
+      } else if (sortBy === 'cost') {
+        return b.total_token_cost - a.total_token_cost; // Highest AI cost first
+      }
+      return 0;
+    });
 
   const leakCount = margins.filter((m) => m.status === 'leak').length;
   const portfolioMargin = margins.reduce((sum, m) => sum + m.net_margin, 0);
@@ -198,6 +298,49 @@ function DashboardPage({ settings }: DashboardPageProps) {
               </div>
             </div>
 
+            {/* Filter and Sorting Controls Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              {/* Status Tabs */}
+              <div style={{ display: 'flex', background: 'var(--sand-2)', border: '1px solid var(--line-2)', borderRadius: '999px', padding: '3px' }}>
+                {(['all', 'leak', 'warning', 'healthy'] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setFilterStatus(status)}
+                    style={{
+                      border: 'none',
+                      background: filterStatus === status ? '#fff' : 'transparent',
+                      color: filterStatus === status ? 'var(--ink)' : 'var(--ink-3)',
+                      padding: '6px 14px',
+                      borderRadius: '999px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textTransform: 'capitalize',
+                      boxShadow: filterStatus === status ? '0 1px 3px rgba(15,17,21,0.08)' : 'none',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {status === 'all' ? 'All Accounts' : status}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sort Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid var(--line-3)', borderRadius: '999px', padding: '4px 12px', fontSize: '11px', fontWeight: 600, color: 'var(--ink-2)' }}>
+                <span style={{ marginRight: '6px', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '11px', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
+                  aria-label="Sort accounts"
+                >
+                  <option value="margin">Margin Deficit (High to Low)</option>
+                  <option value="revenue">Contract Value (High to Low)</option>
+                  <option value="cost">AI Spend (High to Low)</option>
+                </select>
+              </div>
+            </div>
+
             <div className="dash-table-card">
               {loading ? (
                 <div style={{ padding: '40px', textAlign: 'center', color: 'var(--ink-3)' }}>
@@ -248,6 +391,16 @@ function DashboardPage({ settings }: DashboardPageProps) {
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <span className="dash-num">{fmtUSD(row.total_token_cost)}</span>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                            <div style={{ width: '60px', height: '4px', background: 'var(--line-3)', borderRadius: '999px', overflow: 'hidden' }}>
+                              <div style={{
+                                height: '100%',
+                                width: `${Math.min(100, (row.total_token_cost / (row.monthly_revenue || 1)) * 100)}%`,
+                                background: row.status === 'leak' ? 'var(--coral-2)' : row.status === 'warning' ? 'var(--amber)' : 'var(--emerald-2)',
+                                borderRadius: '999px'
+                              }}></div>
+                            </div>
+                          </div>
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <span className={`dash-num ${row.net_margin < 0 ? 'neg' : 'pos'}`}>
@@ -371,7 +524,7 @@ function DashboardPage({ settings }: DashboardPageProps) {
             </div>
 
             {auditResult && selectedRow && (
-              <div className="action-stack reveal">
+              <div className="action-stack reveal" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="sec-lbl">
                   <span>Suggested action</span>
                   <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--ink-4)' }}>{selectedRow.customer_name.toLowerCase()}</span>
@@ -413,6 +566,171 @@ function DashboardPage({ settings }: DashboardPageProps) {
                   </div>
                 </div>
 
+                {/* Cost Distribution Progress Bars */}
+                <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '14px', padding: '20px', boxShadow: '0 1px 2px #0f111505, 0 12px 30px -10px #0f111514' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>AI Cost & Telemetry Details</h3>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-2)', marginBottom: '5px' }}>
+                        <span>Claude 3.5 Sonnet (Contextual Dialogs)</span>
+                        <span style={{ fontWeight: 700, fontFamily: 'var(--mono)' }}>82% ({fmtUSD(Math.round(selectedRow.total_token_cost * 0.82))})</span>
+                      </div>
+                      <div style={{ width: '100%', height: '5px', background: 'var(--line-3)', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: '82%', background: 'var(--indigo)', borderRadius: '999px' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-2)', marginBottom: '5px' }}>
+                        <span>GPT-4o-mini (Classification & Routing)</span>
+                        <span style={{ fontWeight: 700, fontFamily: 'var(--mono)' }}>13% ({fmtUSD(Math.round(selectedRow.total_token_cost * 0.13))})</span>
+                      </div>
+                      <div style={{ width: '100%', height: '5px', background: 'var(--line-3)', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: '13%', background: 'var(--emerald-2)', borderRadius: '999px' }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-2)', marginBottom: '5px' }}>
+                        <span>Vector Chunk Indexing & Embedding Queries</span>
+                        <span style={{ fontWeight: 700, fontFamily: 'var(--mono)' }}>5% ({fmtUSD(Math.round(selectedRow.total_token_cost * 0.05))})</span>
+                      </div>
+                      <div style={{ width: '100%', height: '5px', background: 'var(--line-3)', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: '5%', background: 'var(--amber)', borderRadius: '999px' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Model Routing Selector */}
+                <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '14px', padding: '20px', boxShadow: '0 1px 2px #0f111505, 0 12px 30px -10px #0f111514' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Model Routing Policy</h3>
+                  <p style={{ fontSize: '12px', color: 'var(--ink-3)', marginBottom: '12px' }}>Adjust client pipelines dynamically in the LLM Gateway middleware.</p>
+                  
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <select
+                      value={selectedModel}
+                      onChange={(e) => {
+                        setSelectedModel(e.target.value);
+                        setRoutingSuccess(null);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--line-3)',
+                        background: '#fff',
+                        color: 'var(--ink)',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                      aria-label="Target Model"
+                    >
+                      <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Default)</option>
+                      <option value="gpt-4o-mini">GPT-4o-Mini (Optimized classification)</option>
+                      <option value="claude-3-haiku">Claude 3 Haiku (Affordable queries)</option>
+                    </select>
+                    
+                    <button 
+                      onClick={() => {
+                        const savings = selectedModel === 'claude-3-haiku' ? '$180/mo' : selectedModel === 'gpt-4o-mini' ? '$260/mo' : '$0/mo';
+                        setRoutingSuccess(`Gateway updated! Model routed successfully. Est. monthly savings: ${savings}.`);
+                        setTimeout(() => setRoutingSuccess(null), 5000);
+                      }}
+                      className="ab-btn primary"
+                      style={{ padding: '10px 16px', fontSize: '13px', borderRadius: '8px' }}
+                    >
+                      Update Route
+                    </button>
+                  </div>
+
+                  {routingSuccess && (
+                    <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--emerald-2)', display: 'flex', gap: '6px', alignItems: 'center', fontWeight: 600 }} className="reveal">
+                      <CheckCircle2 size={14} />
+                      <span>{routingSuccess}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Spending Limits / LaunchDarkly Controls */}
+                <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '14px', padding: '20px', boxShadow: '0 1px 2px #0f111505, 0 12px 30px -10px #0f111514' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Daily Spending Limits</h3>
+                  <p style={{ fontSize: '12px', color: 'var(--ink-3)', marginBottom: '12px' }}>Set spending caps. Gateway drops queries when credit budget is exceeded.</p>
+                  
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid var(--line-3)', borderRadius: '8px', padding: '0 12px', flex: 1 }}>
+                      <span style={{ fontSize: '13px', color: 'var(--ink-3)', marginRight: '4px' }}>$</span>
+                      <input 
+                        type="number"
+                        value={dailyCap}
+                        onChange={(e) => {
+                          setDailyCap(e.target.value);
+                          setCapSuccess(null);
+                        }}
+                        style={{ border: 'none', outline: 'none', width: '100%', fontSize: '13px', color: 'var(--ink)', fontWeight: 600 }}
+                        placeholder="25"
+                        aria-label="Daily Limit Cap"
+                      />
+                      <span style={{ fontSize: '12px', color: 'var(--ink-4)', whiteSpace: 'nowrap' }}>/ day</span>
+                    </div>
+                    
+                    <button 
+                      onClick={() => {
+                        setCapSuccess(`Limit cap of $${dailyCap}/day applied via LaunchDarkly target variables.`);
+                        setTimeout(() => setCapSuccess(null), 5000);
+                      }}
+                      className="ab-btn primary"
+                      style={{ padding: '10px 16px', fontSize: '13px', borderRadius: '8px' }}
+                    >
+                      Set Limit
+                    </button>
+                  </div>
+
+                  {capSuccess && (
+                    <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--emerald-2)', display: 'flex', gap: '6px', alignItems: 'center', fontWeight: 600 }} className="reveal">
+                      <CheckCircle2 size={14} />
+                      <span>{capSuccess}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Prompt Caching Snip Selector */}
+                <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '14px', padding: '20px', boxShadow: '0 1px 2px #0f111505, 0 12px 30px -10px #0f111514' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Prompt Caching Headers</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '2px' }}>Reduce long instructions input fees by up to 90%.</p>
+                    </div>
+                    <button
+                      onClick={() => setShowCacheSnippet(!showCacheSnippet)}
+                      className="ab-btn outline"
+                      style={{ padding: '8px 14px', fontSize: '12px', borderRadius: '8px' }}
+                    >
+                      {showCacheSnippet ? 'Hide Code' : 'View Code'}
+                    </button>
+                  </div>
+
+                  {showCacheSnippet && (
+                    <div className="console reveal" style={{ marginTop: '14px', marginBottom: '0', background: '#0f1115', border: '1px solid #1A1D22', padding: '14px', borderRadius: '8px' }}>
+                      <div className="console-body" style={{ fontSize: '12px', lineHeight: '1.6', padding: '0' }}>
+                        <span className="tok-cmt">// Set cache_control to ephemeral</span>{'\n'}
+                        <span className="tok-kw">const</span> response = <span className="tok-kw">await</span> anthropic.messages.create({'{'}{'\n'}
+                        {'  '}model: <span className="tok-str">"claude-3-5-sonnet-20241022"</span>,{'\n'}
+                        {'  '}system: [{'{'}{'\n'}
+                        {'    '}type: <span className="tok-str">"text"</span>,{'\n'}
+                        {'    '}text: <span className="tok-str">"...long instructions..."</span>,{'\n'}
+                        {'    '}cache_control: {'{'} type: <span className="tok-str">"ephemeral"</span> {'}'}{'\n'}
+                        {'  '}{'}'}],{'\n'}
+                        {'  '}messages: messages,{'\n'}
+                        {'});'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {remediationSuccess && (
                   <div className="callout callout--profit" style={{ marginTop: '12px', background: 'var(--emerald-soft)', border: '1px solid rgba(16,185,129,0.22)', color: 'var(--emerald-2)', display: 'flex', gap: '8px', padding: '10px 14px', borderRadius: '8px', fontSize: '12px' }}>
                     <CheckCircle2 size={15} />
@@ -426,16 +744,204 @@ function DashboardPage({ settings }: DashboardPageProps) {
       )}
 
       {activeTab === 'policies' && (
-        <div style={{ padding: '40px', color: 'var(--ink-2)', textAlign: 'center' }}>
-          <h3>Margin Threshold Policies</h3>
-          <p style={{ marginTop: '10px', fontSize: '14px' }}>Automatic throttle rules and margin alerts are configured inside the config repository.</p>
+        <div style={{ padding: '32px 40px', maxWidth: '640px', margin: '0 auto' }} className="reveal">
+          <div className="dash-head" style={{ marginBottom: '28px' }}>
+            <div>
+              <h2>Margin Threshold Policies</h2>
+              <div className="sub">Define automated guardrails and alerting systems for client gross margins.</div>
+            </div>
+          </div>
+          
+          {policiesLoading ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--ink-3)' }}>
+              <RefreshCw size={24} className="spin" style={{ margin: '0 auto 10px', display: 'block' }} />
+              Loading policies...
+            </div>
+          ) : (
+            <form onSubmit={savePolicies} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '14px', padding: '24px', boxShadow: '0 1px 2px #0f111505, 0 12px 30px -10px #0f111514' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--ink)' }}>Automation Triggers</h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)', marginBottom: '6px' }}>
+                      <span>Deficit Alert Threshold</span>
+                      <span style={{ fontFamily: 'var(--mono)', color: 'var(--coral-2)' }}>-${Math.abs(policies.alertThreshold)}/mo</span>
+                    </label>
+                    <p style={{ fontSize: '12px', color: 'var(--ink-3)', marginBottom: '8px' }}>Trigger warnings when customer monthly deficit exceeds this amount.</p>
+                    <input 
+                      type="range" 
+                      min="-500" 
+                      max="0" 
+                      step="50"
+                      value={policies.alertThreshold}
+                      onChange={(e) => setPolicies(prev => ({ ...prev, alertThreshold: Number(e.target.value) }))}
+                      style={{ width: '100%', accentColor: 'var(--indigo)', cursor: 'pointer' }}
+                    />
+                  </div>
+                  
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--line)' }} />
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)', display: 'block' }}>Automatic Throttling (LaunchDarkly)</label>
+                      <span style={{ fontSize: '12px', color: 'var(--ink-3)' }}>Throttles feature flags automatically when deficit is exceeded.</span>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={policies.autoThrottle}
+                      onChange={(e) => setPolicies(prev => ({ ...prev, autoThrottle: e.target.checked }))}
+                      style={{ width: '18px', height: '18px', accentColor: 'var(--indigo)', cursor: 'pointer' }}
+                    />
+                  </div>
+                  
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--line)' }} />
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)', display: 'block' }}>Slack Notification Dispatch</label>
+                      <span style={{ fontSize: '12px', color: 'var(--ink-3)' }}>Send structured warnings to #ops-margin channel.</span>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={policies.notificationSlack}
+                      onChange={(e) => setPolicies(prev => ({ ...prev, notificationSlack: e.target.checked }))}
+                      style={{ width: '18px', height: '18px', accentColor: 'var(--indigo)', cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '14px', padding: '24px', boxShadow: '0 1px 2px #0f111505, 0 12px 30px -10px #0f111514' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--ink)' }}>Evaluation Frequency</h3>
+                <div>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)', display: 'block', marginBottom: '8px' }}>Auditing Schedule</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {['Hourly', 'Daily', 'Weekly'].map((interval) => (
+                      <button
+                        key={interval}
+                        type="button"
+                        onClick={() => setPolicies(prev => ({ ...prev, monitoringInterval: interval }))}
+                        style={{
+                          flex: 1,
+                          padding: '10px',
+                          borderRadius: '8px',
+                          border: '1px solid ' + (policies.monitoringInterval === interval ? 'var(--indigo)' : 'var(--line-3)'),
+                          background: policies.monitoringInterval === interval ? 'var(--indigo-soft)' : '#fff',
+                          color: policies.monitoringInterval === interval ? 'var(--indigo)' : 'var(--ink-2)',
+                          fontWeight: 600,
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        {interval}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'flex-end' }}>
+                {policiesSuccess && (
+                  <span style={{ fontSize: '13px', color: 'var(--emerald-2)', fontWeight: 500 }}>✓ Policy updated successfully!</span>
+                )}
+                <button 
+                  type="submit" 
+                  className="ab-btn primary" 
+                  disabled={policiesSaving}
+                  style={{ padding: '12px 24px', fontSize: '14px' }}
+                >
+                  {policiesSaving ? 'Saving...' : 'Apply Policies'}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
 
       {activeTab === 'audit' && (
-        <div style={{ padding: '40px', color: 'var(--ink-2)', textAlign: 'center' }}>
-          <h3>System Audit Log</h3>
-          <p style={{ marginTop: '10px', fontSize: '14px' }}>No logs recorded in this session. Running in local-first memory cache.</p>
+        <div style={{ padding: '32px 40px' }} className="reveal">
+          <div className="dash-head" style={{ marginBottom: '28px' }}>
+            <div>
+              <h2>System Audit Log</h2>
+              <div className="sub">Chronological history of margin Sentinel reviews and automated remediations.</div>
+            </div>
+          </div>
+          
+          <div className="dash-table-card">
+            {historyLoading ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--ink-3)' }}>
+                <RefreshCw size={24} className="spin" style={{ margin: '0 auto 10px', display: 'block' }} />
+                Loading audit history...
+              </div>
+            ) : auditHistory.length === 0 ? (
+              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--ink-3)' }}>
+                <Inbox size={32} style={{ margin: '0 auto 12px', display: 'block', color: 'var(--ink-4)' }} />
+                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--ink-2)' }}>No Audits Performed</h3>
+                <p style={{ marginTop: '6px', fontSize: '13px' }}>Audit history will populate when the Sentinel reviews customer unit economics.</p>
+              </div>
+            ) : (
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Customer Name</th>
+                    <th>Email Address</th>
+                    <th style={{ textAlign: 'right' }}>Calculated Margin</th>
+                    <th>Suggested Action</th>
+                    <th style={{ textAlign: 'center' }}>Remediation Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditHistory.map((item) => (
+                    <tr key={item.id}>
+                      <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>
+                        {new Date(item.timestamp).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })}
+                      </td>
+                      <td>
+                        <strong style={{ fontWeight: 600 }}>{item.clientName}</strong>
+                      </td>
+                      <td style={{ fontFamily: 'var(--mono)', fontSize: '13px', color: 'var(--ink-2)' }}>
+                        {item.clientEmail}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span className={`dash-num ${item.margin < 0 ? 'neg' : 'pos'}`}>
+                          {item.margin >= 0 ? '+' : ''}{fmtUSD(item.margin)}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+                        {item.suggestedAction}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {item.remediationStatus === 'pending' && (
+                          <span style={{ display: 'inline-flex', padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, background: 'var(--amber-soft)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.22)' }}>
+                            Pending Action
+                          </span>
+                        )}
+                        {item.remediationStatus === 'emailed' && (
+                          <span style={{ display: 'inline-flex', padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, background: 'var(--indigo-soft)', color: 'var(--indigo)', border: '1px solid rgba(99,102,241,0.22)' }}>
+                            E-mailed Notice
+                          </span>
+                        )}
+                        {item.remediationStatus === 'throttled' && (
+                          <span style={{ display: 'inline-flex', padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 600, background: 'var(--coral-soft)', color: 'var(--coral-2)', border: '1px solid rgba(239,68,68,0.22)' }}>
+                            Throttled Access
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
 

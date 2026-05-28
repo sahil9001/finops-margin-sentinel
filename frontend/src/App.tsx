@@ -11,6 +11,7 @@ export interface AppSettings {
   langfuseKey: string;
   posthogKey: string;
   anthropicKey: string;
+  resendKey: string;
 }
 
 type ViewName = 'landing' | 'onboarding' | 'dashboard';
@@ -18,6 +19,7 @@ type ViewName = 'landing' | 'onboarding' | 'dashboard';
 const KEY_FIELDS: { key: keyof AppSettings; label: string; placeholder: string }[] = [
   { key: 'anthropicKey', label: 'Anthropic API Key — Claude Sonnet agent', placeholder: 'sk-ant-…' },
   { key: 'stripeKey', label: 'Stripe Secret Key', placeholder: 'sk_live_…' },
+  { key: 'resendKey', label: 'Resend API Key — Live emails', placeholder: 're_…' },
   { key: 'langfuseKey', label: 'Langfuse Public Key', placeholder: 'pk-lf-…' },
   { key: 'posthogKey', label: 'PostHog Project API Key', placeholder: 'phc_…' },
 ];
@@ -35,6 +37,7 @@ function App() {
     langfuseKey: '',
     posthogKey: '',
     anthropicKey: '',
+    resendKey: '',
   });
   // Whether the backend already has data-source credentials. The GET endpoint
   // only exposes has* booleans (never the raw secrets), so we track this flag
@@ -47,7 +50,7 @@ function App() {
       .then((res) => res.json())
       .then((data) => {
         setSettings((prev) => ({ ...prev, useSandbox: data.useSandbox ?? true }));
-        setKeysConfigured(Boolean(data.hasStripeKey || data.hasLangfuseKey || data.hasPosthogKey));
+        setKeysConfigured(Boolean(data.hasStripeKey || data.hasLangfuseKey || data.hasPosthogKey || data.hasResendKey));
       })
       .catch((err) => console.error('Error fetching settings:', err));
   }, []);

@@ -47,7 +47,7 @@ const MOCK_MARGINS: MarginRow[] = [
     customer_name: 'Springfield Nuclear',
     monthly_revenue: 800,
     total_token_cost: 150,
-    ai_features_clicked: 3200,
+    ai_features_clicked: 5200,
     net_margin: 650,
     status: 'healthy'
   },
@@ -59,6 +59,51 @@ const MOCK_MARGINS: MarginRow[] = [
     ai_features_clicked: 92400,
     net_margin: -250,
     status: 'leak'
+  },
+  {
+    email: 'contact@northwind.com',
+    customer_name: 'Northwind Traders',
+    monthly_revenue: 2500,
+    total_token_cost: 3100,
+    ai_features_clicked: 98500,
+    net_margin: -600,
+    status: 'leak'
+  },
+  {
+    email: 'billing@tyrell.io',
+    customer_name: 'Tyrell Corp',
+    monthly_revenue: 3000,
+    total_token_cost: 950,
+    ai_features_clicked: 32000,
+    net_margin: 2050,
+    status: 'healthy'
+  },
+  {
+    email: 'admin@umbrella.corp',
+    customer_name: 'Umbrella Corp',
+    monthly_revenue: 1200,
+    total_token_cost: 1650,
+    ai_features_clicked: 62000,
+    net_margin: -450,
+    status: 'leak'
+  },
+  {
+    email: 'info@wayne.ent',
+    customer_name: 'Wayne Enterprises',
+    monthly_revenue: 3000,
+    total_token_cost: 3100,
+    ai_features_clicked: 88000,
+    net_margin: -100,
+    status: 'warning'
+  },
+  {
+    email: 'operations@hooli.xyz',
+    customer_name: 'Hooli Inc',
+    monthly_revenue: 2500,
+    total_token_cost: 540,
+    ai_features_clicked: 18000,
+    net_margin: 1960,
+    status: 'healthy'
   }
 ];
 

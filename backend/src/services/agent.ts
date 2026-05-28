@@ -102,6 +102,96 @@ Our accounts team would love to discuss a custom volume contract to unlock flat-
 Sincerely,
 FinOps Margin Sentinel`
     }
+  },
+  'contact@northwind.com': {
+    clientEmail: 'contact@northwind.com',
+    clientName: 'Northwind Traders',
+    margin: -600,
+    reasoning: [
+      'Querying Coral engine: JOIN stripe.subscriptions with langfuse.traces...',
+      'Detected subscription revenue: $2,500/mo.',
+      'Detected LLM token consumption: $3,100/mo (98,500 queries).',
+      'Calculated net margin: -$600 (unprofitable account).',
+      'Inspecting Langfuse trace logs for northwind.com...',
+      'Observed pattern: Extremely large prompt inputs (averaging 35k tokens per request) due to un-chunked document indexing in context windows.',
+      'Action determined: Recommend integrating Vector DB chunking and semantic semantic search instead of sending raw files.'
+    ],
+    suggestedAction: 'Enable File Chunking & Vector Search',
+    emailDraft: {
+      subject: 'FinOps Alert: Optimize un-chunked document inputs in your AI features',
+      body: `Hi Northwind Team,
+
+We hope your team is finding value in our AI-driven search capabilities. 
+
+Our unit economics monitoring has flagged that Northwind's monthly LLM consumption ($3,100) has exceeded your subscription revenue ($2,500/mo), resulting in a net margin deficit.
+
+Our analytics indicate that this is driven by high input token volume. Your application is sending raw documents (averaging 35k tokens per prompt) rather than chunked document snippets. By implementing a Vector Database (RAG) and document chunking, we estimate you can reduce prompt overhead by up to 75% without compromising search accuracy.
+
+Please check the documentation link in your dashboard for details, or reply to this email to coordinate an optimization call with our engineering team.
+
+Best regards,
+FinOps Margin Sentinel`
+    }
+  },
+  'admin@umbrella.corp': {
+    clientEmail: 'admin@umbrella.corp',
+    clientName: 'Umbrella Corp',
+    margin: -450,
+    reasoning: [
+      'Querying Coral engine: JOIN stripe.subscriptions with langfuse.traces...',
+      'Detected subscription revenue: $1,200/mo.',
+      'Detected LLM token consumption: $1,650/mo (62,000 queries).',
+      'Calculated net margin: -$450 (unprofitable Growth tier).',
+      'Inspecting Langfuse trace logs for umbrella.corp...',
+      'Observed pattern: Recursive token loops on employee node user_zombie_12 running recursive JSON formatting retries.',
+      'Action determined: Apply a daily rate-limiting circuit breaker and downgrade flag cap.'
+    ],
+    suggestedAction: 'Apply Rate-Limiting Circuit Breaker',
+    emailDraft: {
+      subject: 'Action Required: Runaway token loops detected on Umbrella Corp account',
+      body: `Hi Umbrella Corp Admin,
+
+This is an automated safety alert from Margin Sentinel. 
+
+During our hourly monitoring, we detected a runaway query anomaly on your workspace. One of your active API nodes (user_zombie_12) has been stuck in a recursive loop requesting JSON validation retries, resulting in 62,000 requests costing $1,650 this month ($450 deficit against your $1,200/mo plan).
+
+To protect your account from unbounded billing escalation, we have temporarily activated a Coarse Rate Limiter flag on feature namespace 'copilot-chat'. 
+
+Please review the loops in your application code. You can clear this rate limit flag in your dashboard once the loop logic is resolved.
+
+Best,
+FinOps Margin Sentinel`
+    }
+  },
+  'info@wayne.ent': {
+    clientEmail: 'info@wayne.ent',
+    clientName: 'Wayne Enterprises',
+    margin: -100,
+    reasoning: [
+      'Querying Coral engine: JOIN stripe.subscriptions with langfuse.traces...',
+      'Detected subscription revenue: $3,000/mo.',
+      'Detected LLM token consumption: $3,100/mo (88,000 queries).',
+      'Calculated net margin: -$100 (borderline deficit).',
+      'Inspecting Langfuse trace logs for wayne.ent...',
+      'Observed pattern: High volume of repetitive text classification and extraction requests routed to Claude 3.5 Sonnet.',
+      'Action determined: Downgrade text extraction pipelines to a cheaper model (Claude 3 Haiku / GPT-4o-mini).'
+    ],
+    suggestedAction: 'Downgrade Extraction Pipelines to Claude 3 Haiku',
+    emailDraft: {
+      subject: 'SaaS Margin Review: Wayne Enterprises AI pipeline models',
+      body: `Dear Wayne Enterprises Team,
+
+Thank you for being a valued Enterprise partner. 
+
+We recently completed a monthly unit economics review of your AI integration. We noticed your account is in a minor deficit this month ($3,100 infrastructure cost vs $3,000 plan value). 
+
+Our audit suggests that 82% of your requests are simple text classification and extraction queries currently routed to Claude 3.5 Sonnet. By routing these simple pipelines to Claude 3 Haiku or GPT-4o-mini, you can lower infrastructure costs by 70% while maintaining the exact same classification accuracy.
+
+We have prepared a model-routing policy profile in your dashboard settings. Please apply it or contact your Account Manager to review.
+
+Sincerely,
+FinOps Margin Sentinel`
+    }
   }
 };
 

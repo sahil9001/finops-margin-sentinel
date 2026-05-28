@@ -14,6 +14,7 @@ function OnboardingWizard({ settings, onSaveSettings, onSkipToSandbox }: Onboard
   const [langfuseKey, setLangfuseKey] = useState(settings.langfuseKey || '');
   const [posthogKey, setPosthogKey] = useState(settings.posthogKey || '');
   const [anthropicKey, setAnthropicKey] = useState(settings.anthropicKey || '');
+  const resendKey = settings.resendKey || '';
   
   const [showStripe, setShowStripe] = useState(false);
   const [showLangfuse, setShowLangfuse] = useState(false);
@@ -35,6 +36,7 @@ function OnboardingWizard({ settings, onSaveSettings, onSkipToSandbox }: Onboard
       langfuseKey,
       posthogKey,
       anthropicKey,
+      resendKey,
     });
   };
 

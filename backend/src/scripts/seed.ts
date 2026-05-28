@@ -1,7 +1,10 @@
 import Stripe from 'stripe';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
+dotenv.config({ path: '.env.local' });
+dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 const {
   STRIPE_SECRET_KEY,
@@ -26,20 +29,62 @@ const SEED_CLIENTS = [
   {
     email: 'alex@acme.com',
     name: 'Acme Corporation',
-    revenue: 1200, // Standard subscription tier ($1,200/mo)
+    revenue: 1200, // Growth tier ($1,200/mo)
     tokenCount: 45200, // Large consumption to trigger leak
   },
   {
     email: 'billing@globex.io',
     name: 'Globex Corp',
-    revenue: 2500, // Premium subscription tier ($2,500/mo)
+    revenue: 2500, // Scale tier ($2,500/mo)
     tokenCount: 68100, // Healthy consumption ratio
   },
   {
     email: 'dev@innovate.co',
     name: 'Innovate LLC',
-    revenue: 450, // Starter tier ($450/mo)
+    revenue: 450, // Developer tier ($450/mo)
     tokenCount: 12500, // Borderline warning consumption
+  },
+  {
+    email: 'homer@springfield.gov',
+    name: 'Springfield Nuclear',
+    revenue: 800, // Startup tier ($800/mo)
+    tokenCount: 5200, // Highly profitable
+  },
+  {
+    email: 'support@cyberdyne.jp',
+    name: 'Cyberdyne Systems',
+    revenue: 3000, // Enterprise tier ($3,000/mo)
+    tokenCount: 92400, // Leaking account
+  },
+  {
+    email: 'contact@northwind.com',
+    name: 'Northwind Traders',
+    revenue: 2500, // Scale tier ($2,500/mo)
+    tokenCount: 98500, // Leaking account
+  },
+  {
+    email: 'billing@tyrell.io',
+    name: 'Tyrell Corp',
+    revenue: 3000, // Enterprise tier ($3,000/mo)
+    tokenCount: 32000, // Highly profitable
+  },
+  {
+    email: 'admin@umbrella.corp',
+    name: 'Umbrella Corp',
+    revenue: 1200, // Growth tier ($1,200/mo)
+    tokenCount: 62000, // Leaking account
+  },
+  {
+    email: 'info@wayne.ent',
+    name: 'Wayne Enterprises',
+    revenue: 3000, // Enterprise tier ($3,000/mo)
+    tokenCount: 88000, // Warning account
+  },
+  {
+    email: 'operations@hooli.xyz',
+    name: 'Hooli Inc',
+    revenue: 2500, // Scale tier ($2,500/mo)
+    tokenCount: 18000, // Highly profitable
   }
 ];
 
@@ -135,7 +180,7 @@ async function seedLangfuse() {
 
       // 1. Create trace event
       batch.push({
-        event: 'trace-create',
+        type: 'trace-create',
         id: `event_t_${traceId}`,
         timestamp,
         body: {
@@ -151,7 +196,7 @@ async function seedLangfuse() {
 
       // 2. Create generation event inside the trace
       batch.push({
-        event: 'generation-create',
+        type: 'generation-create',
         id: `event_g_${generationId}`,
         timestamp,
         body: {
@@ -161,8 +206,9 @@ async function seedLangfuse() {
           model: 'claude-3-5-sonnet',
           usage: {
             // Distribute token counts
-            inputTokens: Math.round(tokensPerTrace * 0.7),
-            outputTokens: Math.round(tokensPerTrace * 0.3),
+            input: Math.round(tokensPerTrace * 0.7),
+            output: Math.round(tokensPerTrace * 0.3),
+            total: tokensPerTrace,
           }
         }
       });
@@ -179,7 +225,12 @@ async function seedLangfuse() {
       });
 
       if (res.ok) {
-        console.log(`  Successfully ingested Langfuse batch trace calls for ${client.email}.`);
+        const responseJson: any = await res.json();
+        if (responseJson.errors && responseJson.errors.length > 0) {
+          console.error(`  Langfuse reported errors during batch ingestion for ${client.email}:`, JSON.stringify(responseJson.errors, null, 2));
+        } else {
+          console.log(`  Successfully ingested Langfuse batch trace calls for ${client.email}.`);
+        }
       } else {
         const errText = await res.text();
         console.error(`  Failed to ingest Langfuse: ${res.status} ${res.statusText} - ${errText}`);
