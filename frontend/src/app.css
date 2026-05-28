@@ -15,7 +15,7 @@
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1rem clamp(1.25rem, 0.5rem + 2vw, 2.5rem);
-  background: oklch(15% 0.012 70 / 0.72);
+  background: var(--topbar-bg, oklch(15% 0.012 70 / 0.72));
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border-bottom: 1px solid var(--line);
@@ -88,7 +88,7 @@
   align-items: center;
   padding: 4px;
   border-radius: 999px;
-  background: oklch(10% 0.01 68);
+  background: var(--input-bg);
   border: 1px solid var(--line-strong);
 }
 .seg__btn {
@@ -130,7 +130,7 @@
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: oklch(8% 0.01 68 / 0.7);
+  background: var(--modal-scrim-bg);
   backdrop-filter: blur(8px);
   animation: reveal-up 0.3s var(--ease);
 }
@@ -150,7 +150,7 @@
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  background: oklch(100% 0 0 / 0.03);
+  background: var(--btn-ghost-bg);
   border: 1px solid var(--line);
   color: var(--bone-dim);
   cursor: pointer;
@@ -168,7 +168,7 @@
   gap: 1rem;
   padding: 1rem 1.1rem;
   border-radius: var(--radius-sm);
-  background: oklch(100% 0 0 / 0.02);
+  background: var(--btn-ghost-bg);
   border: 1px solid var(--line);
 }
 .toggle-row button {

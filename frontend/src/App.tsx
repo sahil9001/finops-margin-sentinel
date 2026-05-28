@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import LandingPage from './views/LandingPage.tsx';
 import DashboardPage from './views/DashboardPage.tsx';
-import { Settings, ShieldCheck, X, AlertTriangle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Settings, ShieldCheck, X, AlertTriangle, ToggleLeft, ToggleRight, Sun, Moon } from 'lucide-react';
 import './app.css';
 
 export interface AppSettings {
@@ -24,6 +24,10 @@ const KEY_FIELDS: { key: keyof AppSettings; label: string; placeholder: string }
 function App() {
   const [currentView, setCurrentView] = useState<ViewName>('landing');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+  });
   const [settings, setSettings] = useState<AppSettings>({
     useSandbox: true,
     stripeKey: '',
@@ -39,6 +43,12 @@ function App() {
       .then((data) => setSettings((prev) => ({ ...prev, useSandbox: data.useSandbox ?? true })))
       .catch((err) => console.error('Error fetching settings:', err));
   }, []);
+
+  // Update theme data-attribute on root
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const saveSettings = async (newSettings: AppSettings, closeModal = false) => {
     try {
@@ -105,6 +115,15 @@ function App() {
           <button className="btn btn--ghost" onClick={() => setIsSettingsOpen(true)}>
             <Settings size={17} />
             Configure
+          </button>
+
+          <button 
+            className="btn btn--ghost btn--icon" 
+            onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
+            aria-label="Toggle theme"
+            style={{ padding: '0.62rem' }}
+          >
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
         </div>
       </header>

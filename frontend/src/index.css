@@ -11,6 +11,15 @@
   --ink-850: oklch(17.5% 0.013 68);
   --ink-800: oklch(21% 0.014 66);
   --ink-750: oklch(25% 0.015 64);
+  --input-bg: oklch(10% 0.01 68);
+  --inset-bg: oklch(11% 0.01 68);
+  --terminal-bg: oklch(9% 0.008 68);
+  --terminal-bar-bg: oklch(13% 0.01 68);
+  --btn-ghost-bg: oklch(100% 0 0 / 0.03);
+  --btn-ghost-bg-hover: oklch(100% 0 0 / 0.07);
+  --table-row-hover: oklch(100% 0 0 / 0.025);
+  --modal-scrim-bg: oklch(8% 0.01 68 / 0.7);
+  --topbar-bg: oklch(15% 0.012 70 / 0.72);
 
   --line: oklch(100% 0 0 / 0.07);
   --line-strong: oklch(100% 0 0 / 0.15);
@@ -51,6 +60,47 @@
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dur: 0.45s;
   --shadow-card: 0 1px 0 oklch(100% 0 0 / 0.04) inset, 0 24px 60px -28px oklch(0% 0 0 / 0.85);
+}
+
+[data-theme="light"] {
+  /* Warm cream/sand light surfaces */
+  --ink-900: oklch(97% 0.006 85);
+  --ink-850: oklch(94% 0.008 83);
+  --ink-800: oklch(90% 0.01 80);
+  --ink-750: oklch(86% 0.012 80);
+  --input-bg: oklch(100% 0 0);
+  --inset-bg: oklch(91% 0.008 83);
+  --terminal-bg: oklch(96% 0.005 85);
+  --terminal-bar-bg: oklch(91% 0.008 83);
+  --btn-ghost-bg: oklch(0% 0 0 / 0.03);
+  --btn-ghost-bg-hover: oklch(0% 0 0 / 0.06);
+  --table-row-hover: oklch(0% 0 0 / 0.025);
+  --modal-scrim-bg: oklch(97% 0.006 85 / 0.7);
+  --topbar-bg: oklch(97% 0.006 85 / 0.72);
+
+  --line: oklch(0% 0 0 / 0.08);
+  --line-strong: oklch(0% 0 0 / 0.16);
+
+  /* Charcoal / dark text */
+  --bone: oklch(20% 0.015 70);
+  --bone-dim: oklch(40% 0.012 70);
+  --bone-faint: oklch(58% 0.01 70);
+
+  /* Signal colors adjusted for light contrast */
+  --gold: oklch(55% 0.08 75);
+  --gold-bright: oklch(50% 0.09 75);
+  --gold-glow: oklch(55% 0.08 75 / 0.18);
+  --gold-soft: oklch(55% 0.08 75 / 0.07);
+
+  --profit: oklch(50% 0.11 150);
+  --profit-glow: oklch(50% 0.11 150 / 0.18);
+  --profit-soft: oklch(50% 0.11 150 / 0.07);
+
+  --loss: oklch(50% 0.15 28);
+  --loss-glow: oklch(50% 0.15 28 / 0.18);
+  --loss-soft: oklch(50% 0.15 28 / 0.07);
+
+  --shadow-card: 0 1px 0 oklch(100% 0 0 / 0.8) inset, 0 16px 45px -20px oklch(0% 0 0 / 0.12);
 }
 
 /* ---------- Reset ---------- */
@@ -165,7 +215,7 @@ h4 {
 }
 
 .surface--inset {
-  background: oklch(11% 0.01 68);
+  background: var(--inset-bg);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   box-shadow: none;
@@ -219,12 +269,12 @@ h4 {
 }
 
 .btn--ghost {
-  background: oklch(100% 0 0 / 0.03);
+  background: var(--btn-ghost-bg);
   color: var(--bone);
   border-color: var(--line-strong);
 }
 .btn--ghost:hover:not(:disabled) {
-  background: oklch(100% 0 0 / 0.07);
+  background: var(--btn-ghost-bg-hover);
   border-color: var(--bone-faint);
   transform: translateY(-1px);
 }
@@ -309,7 +359,7 @@ h4 {
   width: 100%;
   padding: 0.7rem 0.9rem;
   border-radius: var(--radius-sm);
-  background: oklch(10% 0.01 68);
+  background: var(--input-bg);
   border: 1px solid var(--line-strong);
   color: var(--bone);
   font-family: var(--font-mono);
@@ -327,7 +377,7 @@ h4 {
 
 /* ---------- Terminal block ---------- */
 .terminal {
-  background: oklch(9% 0.008 68);
+  background: var(--terminal-bg);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
@@ -339,7 +389,7 @@ h4 {
   gap: 0.45rem;
   padding: 0.7rem 0.95rem;
   border-bottom: 1px solid var(--line);
-  background: oklch(13% 0.01 68);
+  background: var(--terminal-bar-bg);
 }
 .terminal__bar span {
   width: 11px;
