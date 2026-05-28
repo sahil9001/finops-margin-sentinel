@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { coralService } from './services/coral.js';
 import { agentService } from './services/agent.js';
 
@@ -210,11 +212,25 @@ app.post('/api/remediate', (req, res) => {
   } else {
     console.log(`[Remediation] Triggering LaunchDarkly flag throttling for ${email}`);
   }
-
   res.json({ 
     success: true, 
     message: `Remediation action [${action}] executed successfully for ${email}.`
   });
+});
+
+// Serve frontend static assets in production
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+
+app.use(express.static(frontendDist));
+
+// Fallback all non-API GET requests to index.html for React Router support
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
 app.listen(PORT, () => {
