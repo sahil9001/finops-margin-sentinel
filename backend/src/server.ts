@@ -29,7 +29,7 @@ if (process.env.ANTHROPIC_API_KEY) {
 }
 
 // REST APIs
-app.get('/api/settings', (req, res) => {
+app.get('/api/settings', (req: express.Request, res: express.Response) => {
   res.json({
     useSandbox: settings.useSandbox,
     hasStripeKey: !!settings.stripeKey,
@@ -39,7 +39,7 @@ app.get('/api/settings', (req, res) => {
   });
 });
 
-app.post('/api/settings', async (req, res) => {
+app.post('/api/settings', async (req: express.Request, res: express.Response) => {
   const { useSandbox, stripeKey, langfuseKey, posthogKey, anthropicKey } = req.body;
   
   settings = {
@@ -66,7 +66,7 @@ app.post('/api/settings', async (req, res) => {
 });
 
 // Run Coral query to get customer margins
-app.get('/api/margins', async (req, res) => {
+app.get('/api/margins', async (req: express.Request, res: express.Response) => {
   try {
     const sql = `
       SELECT 
@@ -101,7 +101,7 @@ app.get('/api/margins', async (req, res) => {
 });
 
 // Audit a specific client via the Claude agent loop
-app.post('/api/audit', async (req, res) => {
+app.post('/api/audit', async (req: express.Request, res: express.Response) => {
   const { row } = req.body;
   if (!row) {
     return res.status(400).json({ success: false, error: 'Customer row context required' });
@@ -117,7 +117,7 @@ app.post('/api/audit', async (req, res) => {
 });
 
 // Execute mitigation / remediation updates
-app.post('/api/remediate', (req, res) => {
+app.post('/api/remediate', (req: express.Request, res: express.Response) => {
   const { email, action, text } = req.body;
   if (!email || !action) {
     return res.status(400).json({ success: false, error: 'Missing client email or action context' });
