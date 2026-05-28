@@ -91,6 +91,37 @@ FinOps Margin Sentinel`
   }
 };
 
+// Response shape enforced by the API via forced tool use. Claude must return
+// its findings as this tool's input, which the SDK hands back as a parsed
+// object (tool_use.input) — no text/markdown/JSON.parse fragility.
+const AUDIT_TOOL = {
+  name: 'submit_audit',
+  description: 'Submit the completed margin audit for the customer.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      reasoning: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Step-by-step reasoning log (3-5 short items) showing how the customer usage was reviewed.',
+      },
+      suggestedAction: {
+        type: 'string',
+        description: 'The recommended action, e.g. "Upgrade to Scale Tier" or "No action required — customer is profitable".',
+      },
+      emailDraft: {
+        type: 'object',
+        properties: {
+          subject: { type: 'string', description: 'Subject line of the customer email.' },
+          body: { type: 'string', description: 'Full body of the customer email.' },
+        },
+        required: ['subject', 'body'],
+      },
+    },
+    required: ['reasoning', 'suggestedAction', 'emailDraft'],
+  },
+};
+
 export class AgentService {
   constructor() {
     this.anthropic = null;
@@ -173,38 +204,32 @@ Audit context:
 - Raw LLM/Infra cost: $${row.total_token_cost}
 - AI Feature Calls: ${row.ai_features_clicked}
 
-Analyze this customer. Write a brief step-by-step reasoning log (3-5 items) showing how you reviewed their usage.
+Analyze this customer. Write a brief step-by-step reasoning log (3-5 items, each a single concise sentence) showing how you reviewed their usage.
 ${isNegative
   ? 'Then, draft a highly professional, polite email to the customer explaining the situation, outlining the cost breakdown, and suggesting they upgrade or optimize their prompts to lower costs.'
   : 'Then, draft a polite thank-you email to the customer thanking them for being a valued user, noting that their usage looks healthy and optimal.'
 }
 
-Format your output strictly as a JSON object:
-{
-  "reasoning": [
-    "Step 1...",
-    "Step 2..."
-  ],
-  "suggestedAction": "${isNegative ? 'Summary of the final action (e.g. Upgrade to scale plan)' : 'No action required — customer is profitable'}",
-  "emailDraft": {
-    "subject": "Email subject",
-    "body": "Email body content"
-  }
-}
+${isNegative
+  ? 'For the suggested action, summarize the final recommendation (e.g. "Upgrade to Scale Tier").'
+  : 'For the suggested action, use "No action required — customer is profitable".'}
+
+Submit your findings by calling the submit_audit tool.
 `;
 
       const response = await client.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        tools: [AUDIT_TOOL],
+        tool_choice: { type: 'tool', name: 'submit_audit' },
         messages: [{ role: 'user', content: prompt }],
       });
 
-      const firstBlock = response.content[0];
-      if (firstBlock.type !== 'text') {
-        throw new Error('Unexpected response format from Claude.');
+      const toolUse = response.content.find((block) => block.type === 'tool_use');
+      if (!toolUse) {
+        throw new Error('Claude did not return the expected audit tool call.');
       }
-      const content = firstBlock.text;
-      const parsed = JSON.parse(content.trim());
+      const parsed = toolUse.input;
 
       return {
         clientEmail: row.email,
