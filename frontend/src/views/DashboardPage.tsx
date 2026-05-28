@@ -253,106 +253,108 @@ function DashboardPage({ settings }: DashboardPageProps) {
           {auditLoading && <span className="pill pill--warn"><span className="dot dot--warn" /> Auditing</span>}
         </header>
 
-        <div className="terminal console-query">
-          <div className="terminal__bar">
-            <span style={{ background: 'var(--loss)' }} />
-            <span style={{ background: 'var(--gold)' }} />
-            <span style={{ background: 'var(--profit)' }} />
-            <span className="mono faint" style={{ width: 'auto', height: 'auto', marginLeft: '0.5rem', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <Database size={11} /> coral · live execution
-            </span>
+        <div className="panel__scroll" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="terminal console-query">
+            <div className="terminal__bar">
+              <span style={{ background: 'var(--loss)' }} />
+              <span style={{ background: 'var(--gold)' }} />
+              <span style={{ background: 'var(--profit)' }} />
+              <span className="mono faint" style={{ width: 'auto', height: 'auto', marginLeft: '0.5rem', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Database size={11} /> coral · live execution
+              </span>
+            </div>
+            <div className="terminal__body">
+              {selectedRow ? (
+                <>
+                  <span className="query-prompt">›</span>
+                  <span className="tok-key">SELECT</span> * <span className="tok-key">FROM</span> stripe.subscriptions s{' '}
+                  <span className="tok-key">JOIN</span> langfuse.traces l{' '}
+                  <span className="tok-key">ON</span> l.user_email = s.email{' '}
+                  <span className="tok-key">WHERE</span> s.email = <span className="tok-num">'{selectedRow.email}'</span>;
+                </>
+              ) : (
+                <span className="faint"><span className="query-prompt">›</span> awaiting account selection…</span>
+              )}
+            </div>
           </div>
-          <div className="terminal__body">
-            {selectedRow ? (
-              <>
-                <span className="query-prompt">›</span>
-                <span className="tok-key">SELECT</span> * <span className="tok-key">FROM</span> stripe.subscriptions s{' '}
-                <span className="tok-key">JOIN</span> langfuse.traces l{' '}
-                <span className="tok-key">ON</span> l.user_email = s.email{' '}
-                <span className="tok-key">WHERE</span> s.email = <span className="tok-num">'{selectedRow.email}'</span>;
-              </>
+
+          <div className="surface--inset stream">
+            <div className="stream__label">Claude Reasoning Stream</div>
+            {auditLoading ? (
+              <div className="state-block">
+                <RefreshCw size={24} color="var(--gold)" className="spin" />
+                <span>Claude is auditing usage logs…</span>
+              </div>
+            ) : auditError ? (
+              <div className="callout callout--loss" style={{ alignSelf: 'stretch' }}>
+                <AlertCircle size={18} />
+                <span>{auditError}</span>
+              </div>
+            ) : auditResult ? (
+              <div className="timeline">
+                {auditResult.reasoning.map((step, idx) => (
+                  <div
+                    key={idx}
+                    className="timeline__step reveal"
+                    data-final={idx === auditResult.reasoning.length - 1}
+                    style={{ animationDelay: `${idx * 0.12}s` }}
+                  >
+                    <span className="timeline__node">{String(idx + 1).padStart(2, '0')}</span>
+                    <span className="timeline__text">{step}</span>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <span className="faint"><span className="query-prompt">›</span> awaiting account selection…</span>
+              <div className="state-block">
+                <ShieldAlert size={28} color="var(--bone-faint)" />
+                <span>Select a flagged account and run an audit to begin the margin analysis.</span>
+              </div>
             )}
           </div>
-        </div>
 
-        <div className="surface--inset stream">
-          <div className="stream__label">Claude Reasoning Stream</div>
-          {auditLoading ? (
-            <div className="state-block">
-              <RefreshCw size={24} color="var(--gold)" className="spin" />
-              <span>Claude is auditing usage logs…</span>
-            </div>
-          ) : auditError ? (
-            <div className="callout callout--loss" style={{ alignSelf: 'stretch' }}>
-              <AlertCircle size={18} />
-              <span>{auditError}</span>
-            </div>
-          ) : auditResult ? (
-            <div className="timeline">
-              {auditResult.reasoning.map((step, idx) => (
-                <div
-                  key={idx}
-                  className="timeline__step reveal"
-                  data-final={idx === auditResult.reasoning.length - 1}
-                  style={{ animationDelay: `${idx * 0.12}s` }}
-                >
-                  <span className="timeline__node">{String(idx + 1).padStart(2, '0')}</span>
-                  <span className="timeline__text">{step}</span>
+          {auditResult && selectedRow && (
+            <div className="action-stack reveal">
+              <div className={`action-banner ${selectedRow.net_margin >= 0 ? 'action-banner--profit' : 'action-banner--loss'}`}>
+                <span className="action-banner__label">
+                  {selectedRow.net_margin >= 0 ? <CheckCircle2 size={17} /> : <ShieldAlert size={17} />}
+                  Suggested action
+                </span>
+                <span className={`pill ${selectedRow.net_margin >= 0 ? 'pill--profit' : 'pill--warn'}`}>{auditResult.suggestedAction}</span>
+              </div>
+
+              <div className="draft">
+                <div className="draft__head">
+                  <Mail size={15} />
+                  Remediation email draft
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="state-block">
-              <ShieldAlert size={28} color="var(--bone-faint)" />
-              <span>Select a flagged account and run an audit to begin the margin analysis.</span>
+                {auditResult.emailDraft.subject && (
+                  <div className="draft__subject">Subject: {auditResult.emailDraft.subject}</div>
+                )}
+                <textarea value={emailText} onChange={(e) => setEmailText(e.target.value)} aria-label="Email draft body" />
+              </div>
+
+              <div className="action-grid" style={{ gridTemplateColumns: selectedRow.net_margin >= 0 ? '1fr' : '1.25fr 1fr' }}>
+                <button className="btn btn--primary" onClick={() => handleExecuteRemediation('send_email')} disabled={remediating}>
+                  {remediating ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
+                  {selectedRow.net_margin >= 0 ? 'Send Thank You' : 'Send Notice'}
+                </button>
+                {selectedRow.net_margin < 0 && (
+                  <button className="btn btn--ghost" onClick={() => handleExecuteRemediation('throttle_flag')} disabled={remediating}>
+                    <Sliders size={16} />
+                    Throttle Flag
+                  </button>
+                )}
+              </div>
+
+              {remediationSuccess && (
+                <div className="callout callout--profit">
+                  <CheckCircle2 size={16} />
+                  <span>{remediationSuccess}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
-
-        {auditResult && selectedRow && (
-          <div className="action-stack reveal">
-            <div className={`action-banner ${selectedRow.net_margin >= 0 ? 'action-banner--profit' : 'action-banner--loss'}`}>
-              <span className="action-banner__label">
-                {selectedRow.net_margin >= 0 ? <CheckCircle2 size={17} /> : <ShieldAlert size={17} />}
-                Suggested action
-              </span>
-              <span className={`pill ${selectedRow.net_margin >= 0 ? 'pill--profit' : 'pill--warn'}`}>{auditResult.suggestedAction}</span>
-            </div>
-
-            <div className="draft">
-              <div className="draft__head">
-                <Mail size={15} />
-                Remediation email draft
-              </div>
-              {auditResult.emailDraft.subject && (
-                <div className="draft__subject">Subject: {auditResult.emailDraft.subject}</div>
-              )}
-              <textarea value={emailText} onChange={(e) => setEmailText(e.target.value)} aria-label="Email draft body" />
-            </div>
-
-            <div className="action-grid" style={{ gridTemplateColumns: selectedRow.net_margin >= 0 ? '1fr' : '1.25fr 1fr' }}>
-              <button className="btn btn--primary" onClick={() => handleExecuteRemediation('send_email')} disabled={remediating}>
-                {remediating ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
-                {selectedRow.net_margin >= 0 ? 'Send Thank You' : 'Send Notice'}
-              </button>
-              {selectedRow.net_margin < 0 && (
-                <button className="btn btn--ghost" onClick={() => handleExecuteRemediation('throttle_flag')} disabled={remediating}>
-                  <Sliders size={16} />
-                  Throttle Flag
-                </button>
-              )}
-            </div>
-
-            {remediationSuccess && (
-              <div className="callout callout--profit">
-                <CheckCircle2 size={16} />
-                <span>{remediationSuccess}</span>
-              </div>
-            )}
-          </div>
-        )}
       </section>
     </div>
   );
