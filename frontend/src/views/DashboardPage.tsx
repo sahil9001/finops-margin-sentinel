@@ -188,7 +188,8 @@ function DashboardPage({ settings }: DashboardPageProps) {
               <thead>
                 <tr>
                   <th>Customer</th>
-                  <th>Revenue</th>
+                  <th>Subscription Plan</th>
+                  <th>Subscription Value</th>
                   <th>AI Cost</th>
                   <th>Net Margin</th>
                   <th aria-label="Audit action" />
@@ -201,21 +202,23 @@ function DashboardPage({ settings }: DashboardPageProps) {
                   return (
                     <tr key={row.email} data-selected={selectedRow?.email === row.email}>
                       <td>
-                        <div className="cust__name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', width: '100%' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span className={`dot ${STATUS_DOT[row.status]}`} />
-                            {row.customer_name}
-                          </div>
-                          {row.plan && (
-                            <span className="mono faint" style={{ fontSize: '0.62rem', border: '1px solid var(--line-strong)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              {row.plan}
-                            </span>
-                          )}
+                        <div className="cust__name">
+                          <span className={`dot ${STATUS_DOT[row.status]}`} />
+                          {row.customer_name}
                         </div>
                         <div className="cust__email">{row.email}</div>
-                        <div className="loadbar" title={`Cost is ${Math.round(load)}% of revenue`}>
+                        <div className="loadbar" title={`Cost is ${Math.round(load)}% of subscription value`}>
                           <div className="loadbar__fill" style={{ width: `${load}%`, background: tone }} />
                         </div>
+                      </td>
+                      <td>
+                        {row.plan ? (
+                          <span className="mono faint" style={{ fontSize: '0.62rem', border: '1px solid var(--line-strong)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-block' }}>
+                            {row.plan}
+                          </span>
+                        ) : (
+                          <span className="faint">—</span>
+                        )}
                       </td>
                       <td className="figure">{fmtUSD(row.monthly_revenue)}</td>
                       <td className="figure">{fmtUSD(row.total_token_cost)}</td>
@@ -310,12 +313,12 @@ function DashboardPage({ settings }: DashboardPageProps) {
 
         {auditResult && selectedRow && (
           <div className="action-stack reveal">
-            <div className="action-banner">
+            <div className={`action-banner ${selectedRow.net_margin >= 0 ? 'action-banner--profit' : 'action-banner--loss'}`}>
               <span className="action-banner__label">
-                <ShieldAlert size={17} />
+                {selectedRow.net_margin >= 0 ? <CheckCircle2 size={17} /> : <ShieldAlert size={17} />}
                 Suggested action
               </span>
-              <span className="pill pill--warn">{auditResult.suggestedAction}</span>
+              <span className={`pill ${selectedRow.net_margin >= 0 ? 'pill--profit' : 'pill--warn'}`}>{auditResult.suggestedAction}</span>
             </div>
 
             <div className="draft">
@@ -329,15 +332,17 @@ function DashboardPage({ settings }: DashboardPageProps) {
               <textarea value={emailText} onChange={(e) => setEmailText(e.target.value)} aria-label="Email draft body" />
             </div>
 
-            <div className="action-grid">
+            <div className="action-grid" style={{ gridTemplateColumns: selectedRow.net_margin >= 0 ? '1fr' : '1.25fr 1fr' }}>
               <button className="btn btn--primary" onClick={() => handleExecuteRemediation('send_email')} disabled={remediating}>
                 {remediating ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
-                Send Notice
+                {selectedRow.net_margin >= 0 ? 'Send Thank You' : 'Send Notice'}
               </button>
-              <button className="btn btn--ghost" onClick={() => handleExecuteRemediation('throttle_flag')} disabled={remediating}>
-                <Sliders size={16} />
-                Throttle Flag
-              </button>
+              {selectedRow.net_margin < 0 && (
+                <button className="btn btn--ghost" onClick={() => handleExecuteRemediation('throttle_flag')} disabled={remediating}>
+                  <Sliders size={16} />
+                  Throttle Flag
+                </button>
+              )}
             </div>
 
             {remediationSuccess && (

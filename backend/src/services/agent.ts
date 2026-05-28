@@ -1,6 +1,6 @@
 // Lazy-loaded to avoid blocking server startup (SDK is ~20s to import)
 // import Anthropic from '@anthropic-ai/sdk';
-import type { MarginRow } from './coral.ts';
+import type { MarginRow } from './coral.js';
 
 export interface AuditResult {
   clientEmail: string;
@@ -177,9 +177,14 @@ export class AgentService {
     try {
       const client = await this.ensureClient();
       if (!client) throw new Error('Anthropic API key not configured.');
+      
+      const isNegative = row.net_margin < 0;
       const prompt = `
 You are FinOps Margin Sentinel, an autonomous AI agent auditing SaaS gross margins.
-A customer has been flagged with a negative profit margin because their LLM token infrastructure costs exceed their subscription billing.
+${isNegative 
+  ? 'A customer has been flagged with a negative profit margin because their LLM token infrastructure costs exceed their subscription billing.'
+  : 'A customer has a positive profit margin and is within their usage limits. You are auditing their usage to ensure everything is healthy.'
+}
 
 Audit context:
 - Customer Name: ${row.customer_name}
@@ -189,7 +194,10 @@ Audit context:
 - AI Feature Calls: ${row.ai_features_clicked}
 
 Analyze this customer. Write a brief step-by-step reasoning log (3-5 items) showing how you reviewed their usage.
-Then, draft a highly professional, polite email to the customer explaining the situation, outlining the cost breakdown, and suggesting they upgrade or optimize their prompts.
+${isNegative
+  ? 'Then, draft a highly professional, polite email to the customer explaining the situation, outlining the cost breakdown, and suggesting they upgrade or optimize their prompts to lower costs.'
+  : 'Then, draft a polite thank-you email to the customer thanking them for being a valued user, noting that their usage looks healthy and optimal.'
+}
 
 Format your output strictly as a JSON object:
 {
@@ -197,7 +205,7 @@ Format your output strictly as a JSON object:
     "Step 1...",
     "Step 2..."
   ],
-  "suggestedAction": "Summary of the final action (e.g. Upgrade to scale plan)",
+  "suggestedAction": "${isNegative ? 'Summary of the final action (e.g. Upgrade to scale plan)' : 'No action required — customer is profitable'}",
   "emailDraft": {
     "subject": "Email subject",
     "body": "Email body content"

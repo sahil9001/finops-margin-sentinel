@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { coralService } from './services/coral.ts';
-import { agentService } from './services/agent.ts';
+import { coralService } from './services/coral.js';
+import { agentService } from './services/agent.js';
 
 dotenv.config();
 
