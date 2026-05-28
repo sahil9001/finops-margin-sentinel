@@ -1,7 +1,26 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 const execAsync = promisify(exec);
+
+function getCoralBinaryPath(): string {
+  // 1. Check environment variable
+  if (process.env.CORAL_PATH) {
+    return process.env.CORAL_PATH;
+  }
+  
+  // 2. Check default install.sh location: ~/.local/bin/coral
+  const homePath = path.join(os.homedir(), '.local', 'bin', 'coral');
+  if (fs.existsSync(homePath)) {
+    return homePath;
+  }
+  
+  // 3. Fallback to global command
+  return 'coral';
+}
 
 export interface MarginRow {
   email: string;
@@ -155,7 +174,8 @@ export class CoralService {
       // Execute coral command line tool
       // Escape query to run safely in shell
       const escapedSql = sql.replace(/"/g, '\\"');
-      const command = `coral sql --format json "${escapedSql}"`;
+      const coralBin = getCoralBinaryPath();
+      const command = `${coralBin} sql --format json "${escapedSql}"`;
       
       const { stdout, stderr } = await execAsync(command, { env });
       
