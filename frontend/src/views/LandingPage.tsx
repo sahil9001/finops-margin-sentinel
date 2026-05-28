@@ -1,157 +1,228 @@
-import { ArrowRight, Database, LineChart, GitMerge, Cpu, Check } from 'lucide-react';
-import './landing.css';
+import { ArrowRight } from 'lucide-react';
+import { BrandLockup, StripeGlyph, LangfuseGlyph, PostHogGlyph, SentinelGlyph } from './BrandLogos.tsx';
 
 interface LandingPageProps {
-  onEnterDashboard: () => void;
-  onLaunchSandbox: () => void;
+  onStartAudit: () => void;
 }
 
-const STATS = [
-  { num: '$24,840', label: 'AI margin leaks intercepted', tone: 'var(--profit)' },
-  { num: '84.2%', label: 'Coral query efficiency', tone: 'var(--gold)' },
-  { num: '148', label: 'Autonomous agent audits run', tone: 'var(--bone)' },
-];
-
-const STEPS = [
-  { icon: Database, title: 'Ingest Stripe', body: 'Coral reads subscription plans and invoices directly, surfacing active recurring revenue per account.' },
-  { icon: LineChart, title: 'Trace LLM cost', body: 'Token spend from Langfuse and feature events from PostHog are mapped back to each customer email.' },
-  { icon: GitMerge, title: 'Join locally', body: 'A single local-first SQL join fuses revenue and cost — no warehouse, no pipeline, no latency.' },
-  { icon: Cpu, title: 'Remediate', body: 'Claude audits the leak, drafts an upsell notice, and proposes a feature-flag throttle to stop the bleed.' },
-];
-
-const CHECKS = [
-  'Zero data latency — queries live APIs directly.',
-  'Secure by default — key management stays on your host.',
-  'Declarative mapping — simple YAML manifests compile to tables.',
-];
-
-function LandingPage({ onEnterDashboard, onLaunchSandbox }: LandingPageProps) {
+function LandingPage({ onStartAudit }: LandingPageProps) {
   return (
-    <div className="shell landing">
-      {/* Hero */}
-      <section className="hero" aria-labelledby="hero-heading">
-        <div className="reveal" style={{ animationDelay: '0.05s' }}>
-          <p className="eyebrow">FinOps · SaaS Unit Economics</p>
-          <h1 className="display hero__title" id="hero-heading">
-            Your AI features are <em>quietly</em> losing you money.
-          </h1>
-          <p className="hero__sub">
-            Margin Sentinel joins Stripe revenue, Langfuse token cost, and PostHog usage into one customer ledger —
-            then sends a Claude agent to audit every negative-margin account and draft the fix.
-          </p>
-          <div className="hero__cta">
-            <button className="btn btn--primary" onClick={onLaunchSandbox} style={{ padding: '0.85rem 1.5rem' }}>
-              Launch Demo Sandbox
-              <ArrowRight size={18} />
-            </button>
-            <button className="btn btn--ghost" onClick={onEnterDashboard} style={{ padding: '0.85rem 1.5rem' }}>
-              Open the Desk
-            </button>
-          </div>
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      {/* background glows inside frame */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        background: `
+          radial-gradient(600px 400px at 15% 10%, rgba(244,114,182,0.18), transparent 60%),
+          radial-gradient(700px 500px at 90% 25%, rgba(251,146,60,0.16), transparent 60%),
+          radial-gradient(800px 500px at 50% 95%, rgba(167,139,250,0.20), transparent 60%)
+        `
+      }}></div>
+
+      <nav className="lf-nav">
+        <div className="lf-brand"><span className="mark"></span> Sentinel</div>
+        <div className="lf-nav-links">
+          <a href="#product" onClick={(e) => e.preventDefault()}>Product</a>
+          <a href="#integrations" onClick={(e) => e.preventDefault()}>Integrations</a>
+          <a href="#pricing" onClick={(e) => e.preventDefault()}>Pricing</a>
+          <a href="#customers" onClick={(e) => e.preventDefault()}>Customers</a>
+          <a href="#changelog" onClick={(e) => e.preventDefault()}>Changelog</a>
+        </div>
+        <div className="lf-nav-cta">
+          <a href="#signin" onClick={(e) => { e.preventDefault(); onStartAudit(); }} style={{ color: 'var(--ink-2)', textDecoration: 'none', fontSize: '15px', fontWeight: 500, padding: '10px 14px' }}>Sign in</a>
+          <button className="lf-btn lf-btn-secondary" style={{ padding: '12px 20px', fontSize: '14px' }} onClick={onStartAudit}>Book demo</button>
+        </div>
+      </nav>
+
+      <section className="lf-hero">
+        <span className="lf-eyebrow">
+          <span className="pulse"></span>
+          Margin Sentinel · SaaS Unit Economics
+        </span>
+        <h1 className="lf-h1">Your AI features are <span className="quietly">quietly</span> losing you money.</h1>
+        <p className="lf-sub">Sentinel joins Stripe revenue, Langfuse token cost, and PostHog click logs into a single customer ledger — then sends a Claude agent to audit negative-margin accounts and draft the fix.</p>
+        <div className="lf-cta-row">
+          <button className="lf-btn lf-btn-primary" id="cta-start" onClick={onStartAudit}>
+            Start Free Audit
+            <ArrowRight size={18} />
+          </button>
+          <button className="lf-btn lf-btn-secondary" onClick={onStartAudit}>Request Demo</button>
+        </div>
+        <div className="lf-trust">
+          <span>SOC 2 Type II</span>
+          <span className="pip"></span>
+          <span>Read-only keys</span>
+          <span className="pip"></span>
+          <span>14-day audit window</span>
         </div>
 
-        {/* Hero visual: a margin statement caught in the red */}
-        <div className="surface statement reveal" style={{ animationDelay: '0.18s' }}>
-          <div className="statement__head">
-            <span className="statement__name">Acme Corporation</span>
-            <span className="pill pill--loss">
-              <span className="dot dot--loss" />
-              Leak
-            </span>
+        <div className="lf-integrations-logos">
+          <span>Supported Stack</span>
+          <div className="logo-group">
+            <BrandLockup brand="stripe" name="Stripe" role="Billing" />
+            <span className="logo-sep"></span>
+            <BrandLockup brand="langfuse" name="Langfuse" role="Traces" />
+            <span className="logo-sep"></span>
+            <BrandLockup brand="posthog" name="PostHog" role="Logs" />
           </div>
-          <div className="statement__line">
-            <span className="label">Stripe subscription</span>
-            <span className="val" style={{ color: 'var(--profit)' }}>+ $1,200.00</span>
-          </div>
-          <div className="statement__line">
-            <span className="label">Langfuse token cost</span>
-            <span className="val" style={{ color: 'var(--loss)' }}>− $1,540.00</span>
-          </div>
-          <div className="statement__line">
-            <span className="label">AI feature calls</span>
-            <span className="val muted">45,200</span>
-          </div>
-          <div className="statement__total">
-            <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Net Margin
-            </span>
-            <span className="big" style={{ color: 'var(--loss)' }}>− $340</span>
-          </div>
-          <div className="statement__stamp">Negative gross margin — flagged</div>
-        </div>
-      </section>
-
-      {/* Ticker stats */}
-      <section className="ticker reveal" style={{ animationDelay: '0.28s' }} aria-label="Key metrics">
-        {STATS.map((s) => (
-          <div className="ticker__cell" key={s.label}>
-            <div className="ticker__num" style={{ color: s.tone }}>{s.num}</div>
-            <div className="ticker__label">{s.label}</div>
-          </div>
-        ))}
-      </section>
-
-      {/* Workflow */}
-      <section className="section" aria-labelledby="workflow-heading">
-        <p className="eyebrow">The Pipeline</p>
-        <h2 className="section__title" id="workflow-heading">From raw billing to remediation in four moves.</h2>
-        <div className="steps">
-          {STEPS.map((step, i) => (
-            <article className="surface surface-hover step reveal" key={step.title} style={{ animationDelay: `${0.1 * i}s` }}>
-              <span className="step__index">{String(i + 1).padStart(2, '0')}</span>
-              <step.icon className="step__icon" size={26} strokeWidth={1.75} />
-              <h3 className="step__title">{step.title}</h3>
-              <p className="step__body">{step.body}</p>
-            </article>
-          ))}
         </div>
       </section>
 
-      {/* SQL section */}
-      <section className="surface sql-section" aria-labelledby="sql-heading">
-        <div>
-          <p className="eyebrow">Coral SQL Engine</p>
-          <h2 style={{ fontSize: '1.9rem', margin: '0.75rem 0 1rem' }} id="sql-heading">
-            One query where there used to be a pipeline.
-          </h2>
-          <p className="muted" style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-            Connecting usage events to pricing data normally means an ETL job into a warehouse and a separate BI tool.
-            Coral collapses that into a single query running inside the agent's workspace.
-          </p>
-          <ul className="checklist">
-            {CHECKS.map((c) => (
-              <li key={c}>
-                <Check size={17} strokeWidth={2.5} />
-                <span>{c}</span>
-              </li>
-            ))}
-          </ul>
+      <section className="lf-bento">
+        {/* Card A: Stripe */}
+        <div className="bento">
+          <div className="bento-eyebrow"><span className="src-dot" style={{ background: '#635BFF' }}></span> Stripe · Billing sync</div>
+          <h3>Live invoice ledger</h3>
+          <p>Active subscriptions, MRR, and 30-day invoice history ingested on a read-only key.</p>
+          <div className="bento-preview">
+            <div className="mini-invoice">
+              <div className="mi-row"><span className="label">Acme Corp · Growth</span><span className="val mi-pos">+$1,200.00</span></div>
+              <div className="mi-row"><span className="label">Northwind · Scale</span><span className="val mi-pos">+$2,500.00</span></div>
+              <div className="mi-row"><span className="label">Parallax · Starter</span><span className="val mi-pos">+$99.00</span></div>
+              <div className="mi-row"><span className="label">Status</span><span className="mi-status">SYNCED · 248 ACCOUNTS</span></div>
+            </div>
+          </div>
         </div>
 
-        <div className="terminal">
-          <div className="terminal__bar">
-            <span style={{ background: 'var(--loss)' }} />
-            <span style={{ background: 'var(--gold)' }} />
-            <span style={{ background: 'var(--profit)' }} />
-            <span className="mono faint" style={{ width: 'auto', height: 'auto', marginLeft: '0.5rem', fontSize: '0.72rem' }}>
-              coral · margin.sql
-            </span>
+        {/* Card B: Langfuse chart */}
+        <div className="bento">
+          <div className="bento-eyebrow"><span className="src-dot" style={{ background: '#10B981' }}></span> Langfuse · Token cost</div>
+          <h3>Per-customer LLM spend</h3>
+          <p>Every prompt and completion attributed back to a customer_id.</p>
+          <div className="bento-preview">
+            <div className="mini-chart">
+              <div className="legend"><span>30d token spend</span><span className="total">$8,420</span></div>
+              <svg className="chart-svg" viewBox="0 0 320 100" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="gradChart" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#F87171" stopOpacity="0.35"></stop>
+                    <stop offset="100%" stopColor="#F87171" stopOpacity="0"></stop>
+                  </linearGradient>
+                </defs>
+                <path d="M0,70 L20,62 L40,68 L60,55 L80,58 L100,40 L120,46 L140,30 L160,38 L180,22 L200,28 L220,18 L240,24 L260,12 L280,18 L300,8 L320,14 L320,100 L0,100 Z" fill="url(#gradChart)"></path>
+                <path d="M0,70 L20,62 L40,68 L60,55 L80,58 L100,40 L120,46 L140,30 L160,38 L180,22 L200,28 L220,18 L240,24 L260,12 L280,18 L300,8 L320,14" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"></path>
+                <circle cx="300" cy="8" r="4" fill="#EF4444" stroke="#fff" strokeWidth="2"></circle>
+              </svg>
+            </div>
           </div>
-          <pre className="terminal__body" style={{ margin: 0 }}>
-            <span className="tok-cmt">-- Cross-source margin join</span>{'\n'}
-            <span className="tok-key">SELECT</span> s.email, s.monthly_revenue, l.token_cost,{'\n'}
-            {'       '}(s.monthly_revenue - l.token_cost) <span className="tok-key">AS</span> net_margin{'\n'}
-            <span className="tok-key">FROM</span> stripe.subscriptions s{'\n'}
-            <span className="tok-key">JOIN</span> langfuse.usage_summary l{'\n'}
-            {'  '}<span className="tok-key">ON</span> l.user_email = s.email{'\n'}
-            <span className="tok-key">WHERE</span> (s.monthly_revenue - l.token_cost) {'<'} <span className="tok-num">0</span>;
-          </pre>
+        </div>
+
+        {/* Card C: Sentinel */}
+        <div className="bento">
+          <div className="bento-eyebrow"><span className="src-dot" style={{ background: '#6366F1' }}></span> Claude agent · Auditor</div>
+          <h3>Sentinel watches every account.</h3>
+          <p>Drafts remediation notices for negative-margin customers.</p>
+          <div className="bento-preview">
+            <div className="sentinel-icon">
+              <div className="scan-line"></div>
+              <div className="sentinel-bot">
+                <div className="head">
+                  <div className="eye l"></div>
+                  <div className="eye r"></div>
+                  <div className="mouth"></div>
+                </div>
+                <div className="body"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <footer className="landing-footer">
-        <span>Margin Sentinel</span>
-        <span>Pirates of the Coral-bean · Enterprise Track</span>
+      {/* Themed data-flow pipeline */}
+      <section className="lf-flow-section" id="product">
+        <span className="lf-eyebrow"><span className="pulse"></span> The Pipeline</span>
+        <h2 className="lf-flow-title">How data fuses into margin control</h2>
+        <p className="lf-flow-sub">
+          Sentinel joins billing revenue, LLM trace cost, and usage clickstreams into a single
+          local-first ledger — then hands it to a Claude agent that audits every account.
+        </p>
+
+        <div className="lf-flow-diagram">
+          <div className="flow-node">
+            <span className="node-icon stripe"><StripeGlyph size={22} /></span>
+            <h4>Stripe Invoices</h4>
+            <p>Monthly recurring revenue</p>
+          </div>
+
+          <div className="flow-link" aria-hidden="true"><span className="flow-pulse"></span></div>
+
+          <div className="flow-node">
+            <span className="node-icon langfuse"><LangfuseGlyph size={22} /></span>
+            <h4>Langfuse Traces</h4>
+            <p>Per-customer token cost</p>
+          </div>
+
+          <div className="flow-link" aria-hidden="true"><span className="flow-pulse"></span></div>
+
+          <div className="flow-node">
+            <span className="node-icon posthog"><PostHogGlyph size={22} /></span>
+            <h4>PostHog Clicks</h4>
+            <p>Feature action logs</p>
+          </div>
+
+          <div className="flow-link special" aria-hidden="true">
+            <span className="flow-chip">Coral · SQL Join</span>
+            <span className="flow-pulse"></span>
+          </div>
+
+          <div className="flow-node highlight">
+            <span className="node-icon sentinel"><SentinelGlyph size={22} /></span>
+            <h4>Claude Sentinel</h4>
+            <p>Drafts the margin fix</p>
+          </div>
+        </div>
+      </section>
+
+      <footer className="lf-footer">
+        <div className="lf-footer-top">
+          <div className="lf-footer-brand">
+            <div className="lf-brand"><span className="mark"></span> Sentinel</div>
+            <p>The unit-economics desk for AI products. Find the accounts quietly losing you money — and fix them before renewal.</p>
+            <div className="lf-footer-badges">
+              <span>SOC 2 Type II</span>
+              <span>Read-only keys</span>
+            </div>
+          </div>
+
+          <nav className="lf-footer-cols" aria-label="Footer">
+            <div className="lf-footer-col">
+              <h5>Product</h5>
+              <a href="#product" onClick={(e) => e.preventDefault()}>Overview</a>
+              <a href="#pricing" onClick={(e) => e.preventDefault()}>Pricing</a>
+              <a href="#changelog" onClick={(e) => e.preventDefault()}>Changelog</a>
+              <a href="#signin" onClick={(e) => { e.preventDefault(); onStartAudit(); }}>Start free audit</a>
+            </div>
+            <div className="lf-footer-col">
+              <h5>Integrations</h5>
+              <a href="#integrations" onClick={(e) => e.preventDefault()}>Stripe</a>
+              <a href="#integrations" onClick={(e) => e.preventDefault()}>Langfuse</a>
+              <a href="#integrations" onClick={(e) => e.preventDefault()}>PostHog</a>
+              <a href="#integrations" onClick={(e) => e.preventDefault()}>Anthropic</a>
+            </div>
+            <div className="lf-footer-col">
+              <h5>Company</h5>
+              <a href="#about" onClick={(e) => e.preventDefault()}>About</a>
+              <a href="#customers" onClick={(e) => e.preventDefault()}>Customers</a>
+              <a href="#security" onClick={(e) => e.preventDefault()}>Security</a>
+              <a href="#contact" onClick={(e) => e.preventDefault()}>Contact</a>
+            </div>
+          </nav>
+        </div>
+
+        <div className="lf-footer-stack">
+          <span className="lf-footer-stack-label">Connects with</span>
+          <div className="lf-footer-stack-logos">
+            <BrandLockup brand="stripe" name="Stripe" />
+            <BrandLockup brand="langfuse" name="Langfuse" />
+            <BrandLockup brand="posthog" name="PostHog" />
+          </div>
+        </div>
+
+        <div className="lf-footer-bottom">
+          <span>© 2026 Margin Sentinel</span>
+          <span>Pirates of the Coral-bean · Enterprise Track</span>
+        </div>
       </footer>
     </div>
   );
