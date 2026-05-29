@@ -2,6 +2,8 @@
 
 **FinOps Margin Sentinel** is an AI-powered SaaS profitability and unit-economics controller built for the **Enterprise Track of the Pirates of the Coral-bean hackathon**. It solves a massive, real-world problem for modern software companies: **the AI Margin Leak**.
 
+🚀 **Live Demo URL**: [https://backend-production-0050.up.railway.app/](https://backend-production-0050.up.railway.app/)
+
 ---
 
 ## The Initial Idea & Vision
@@ -193,6 +195,8 @@ npm run build:all
 ### Deployment
 
 For detailed instructions on deploying the application to Railway, please refer to the [Railway Deployment Guide](file:///Users/ssilare/dev/finops-margin-sentinel/docs/deploy-to-railway.md).
+
+The live production deployment is hosted at: [https://backend-production-0050.up.railway.app/](https://backend-production-0050.up.railway.app/)
 
 ---
 
