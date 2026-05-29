@@ -4,6 +4,10 @@
 
 🚀 **Live Demo URL**: [https://backend-production-0050.up.railway.app/](https://backend-production-0050.up.railway.app/)
 
+# Screenshots
+<img width="2368" height="4638" alt="backend-production-0050 up railway app_" src="https://github.com/user-attachments/assets/d8991604-4475-472b-b6af-27d22127bd9a" />
+<img width="2880" height="2034" alt="backend-production-0050 up railway app_ (1)" src="https://github.com/user-attachments/assets/86fa9771-59e0-40fe-be4b-241648454795" />
+
 ---
 
 ## The Initial Idea & Vision
