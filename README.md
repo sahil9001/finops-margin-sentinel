@@ -190,6 +190,10 @@ npm run seed
 npm run build:all
 ```
 
+### Deployment
+
+For detailed instructions on deploying the application to Railway, please refer to the [Railway Deployment Guide](file:///Users/ssilare/dev/finops-margin-sentinel/docs/deploy-to-railway.md).
+
 ---
 
 ## REST API
