@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl tar ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Download and install the Linux x86_64 Coral binary
-RUN curl -L https://github.com/withcoral/coral/releases/download/v0.4.2/coral-x86_64-unknown-linux-gnu.tar.gz \
+RUN curl -L https://github.com/withcoral/coral/releases/download/v0.4.1/coral-x86_64-unknown-linux-gnu.tar.gz \
     | tar -xz && mv coral /usr/local/bin/coral && chmod +x /usr/local/bin/coral
 
 # Copy package files and install dependencies
