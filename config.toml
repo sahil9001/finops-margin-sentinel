@@ -1,0 +1,16 @@
+version = 1
+
+[workspaces.default.sources.stripe]
+variables = {}
+secrets = ["STRIPE_API_KEY"]
+origin = "bundled"
+
+[workspaces.default.sources.langfuse]
+variables = { LANGFUSE_HOST = "https://api.langfuse.com" }
+secrets = ["LANGFUSE_API_KEY"]
+origin = "bundled"
+
+[workspaces.default.sources.posthog]
+variables = { POSTHOG_HOST = "https://us.i.posthog.com" }
+secrets = ["POSTHOG_API_KEY"]
+origin = "bundled"
